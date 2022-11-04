@@ -1,0 +1,13 @@
+{
+    "unused": {
+        "enable": true
+    },
+    "include": [
+        "**/*.php"
+    ],
+    "exclude": [
+        "vendor",
+        "storage",
+        "**.blade.php"
+    ]
+}
