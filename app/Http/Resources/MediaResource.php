@@ -16,6 +16,7 @@ class MediaResource extends JsonResource
             'id' => $this->resource->id,
             'title' => $this->resource->title,
             'type' => $this->resource->type->value,
+            'rating' => $this->resource->rating,
             'source' => $this->resource->source,
             'url' => $this->resource->file->publicUrl(),
         ];
