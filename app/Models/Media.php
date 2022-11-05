@@ -15,6 +15,8 @@ use Illuminate\Database\Eloquent\{
  * @property string $unique_key
  * @property int $file_id
  * @property int $rating
+ * @property int $rating_positive
+ * @property int $rating_negative
  * @property int $title
  * @property MediaType $type
  * @property string $source

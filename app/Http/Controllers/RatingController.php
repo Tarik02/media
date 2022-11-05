@@ -66,13 +66,32 @@ class RatingController extends Controller
                 return false;
             }
 
+            $diffPositive = -max(0, $like->value) + \max(0, $value);
+            $diffNegative = min(0, $like->value) + -\min(0, $value);
+
             $diff = $value - $like->value;
             $like->value = $value;
             $like->save();
 
-            Media::query()
-                ->whereKey($media->id)
-                ->increment('rating', $diff);
+            $query = Media::query()->whereKey($media->id);
+
+            $query->update([
+                'rating' => DB::raw(\sprintf(
+                    '%s + %s',
+                    $query->getGrammar()->wrap('rating'),
+                    $diff,
+                )),
+                'rating_positive' => DB::raw(\sprintf(
+                    '%s + %s',
+                    $query->getGrammar()->wrap('rating_positive'),
+                    $diffPositive,
+                )),
+                'rating_negative' => DB::raw(\sprintf(
+                    '%s + %s',
+                    $query->getGrammar()->wrap('rating_negative'),
+                    $diffNegative,
+                )),
+            ]);
 
             return true;
         });
