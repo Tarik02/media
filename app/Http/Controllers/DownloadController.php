@@ -17,8 +17,12 @@ use GuzzleHttp\{
 
 class DownloadController extends Controller
 {
-    public function download(File $file): Response|StreamedResponse
+    public function download(File $file, string $filename): Response|StreamedResponse
     {
+        if ($file->filename !== $filename) {
+            throw new NotFoundHttpException;
+        }
+
         return match ($file->type) {
             FileType::PUBLIC => $this->downloadPublic($file),
             FileType::YTDLP => $this->downloadYtdlp($file),

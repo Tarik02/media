@@ -12,6 +12,8 @@ return new class extends Migration {
 
             $table->string('type');
 
+            $table->string('filename');
+
             $table->json('data');
 
             $table->timestamps();

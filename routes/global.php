@@ -2,4 +2,4 @@
 
 use App\Http\Controllers\DownloadController;
 
-Route::get('download/{fileById}')->uses([DownloadController::class, 'download']);
+Route::get('download/{fileById}/{filename}')->uses([DownloadController::class, 'download']);
