@@ -7,6 +7,7 @@ use App\Models\File;
 use Exception;
 use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Process\Process;
 
 use GuzzleHttp\{
@@ -19,9 +20,19 @@ class DownloadController extends Controller
     public function download(File $file): Response|StreamedResponse
     {
         return match ($file->type) {
+            FileType::PUBLIC => $this->downloadPublic($file),
             FileType::YTDLP => $this->downloadYtdlp($file),
-            default => new Response('', Response::HTTP_NOT_FOUND),
+            default => throw new NotFoundHttpException,
         };
+    }
+
+    protected function downloadPublic(File $file): Response
+    {
+        $downloadUrl = $file->data['url'];
+
+        return new Response('', 200, [
+            'X-Accel-Redirect' => '/__download/' . \preg_replace('~^(https?)://~', '$1/', $downloadUrl),
+        ]);
     }
 
     protected function downloadYtdlp(File $file): StreamedResponse

@@ -1,7 +1,11 @@
 <?php
 
 use App\Enums\MediaType;
-use App\Models\Media;
+
+use App\Models\{
+    File,
+    Media
+};
 
 Route::bind(
     'mediaType',
@@ -9,3 +13,5 @@ Route::bind(
 );
 
 Route::model('mediaById', Media::class);
+
+Route::model('fileById', File::class);

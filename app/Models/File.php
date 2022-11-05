@@ -64,8 +64,7 @@ class File extends Model
     {
         return match ($this->type) {
             FileType::STORAGE => Storage::disk($this->data['disk'])->url($this->data['path']),
-            FileType::PUBLIC => $this->data['url'],
-            FileType::YTDLP => \action([DownloadController::class, 'download'], [$this]),
+            FileType::PUBLIC, FileType::YTDLP => \action([DownloadController::class, 'download'], [$this]),
         };
     }
 }
