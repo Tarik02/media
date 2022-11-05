@@ -1,6 +1,9 @@
 <?php
 
-use App\Http\Controllers\RandomController;
+use App\Http\Controllers\{
+    MediaController,
+    RandomController
+};
 
 Route::get('get/{mediaById}')->uses([MediaController::class, 'get']);
 
