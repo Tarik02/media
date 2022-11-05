@@ -33,14 +33,6 @@ class PostProcessor
             case isset($post['removed_by_category']):
                 break;
 
-            case ($data['post_hint'] ?? null) === 'image':
-                $this->processImage($data);
-                break;
-
-            case $data['is_gallery'] ?? false:
-                $this->processGallery($data);
-                break;
-
             case null !== $downloadUrl = $data['preview']['reddit_video_preview']['fallback_url'] ?? null:
                 $media = $this->createMediaFromData($data);
                 $media->type = MediaType::VIDEO;
@@ -48,6 +40,14 @@ class PostProcessor
                     File::fromPublicUrl($downloadUrl)
                 );
                 $media->save();
+                break;
+
+            case ($data['post_hint'] ?? null) === 'image':
+                $this->processImage($data);
+                break;
+
+            case $data['is_gallery'] ?? false:
+                $this->processGallery($data);
                 break;
 
             case ($data['post_hint'] ?? null) === 'rich:video' && null !== $destUrl = $data['url_overridden_by_dest'] ?? null:
