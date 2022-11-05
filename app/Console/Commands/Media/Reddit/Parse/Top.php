@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Console\Commands\Media\Reddit;
+namespace App\Console\Commands\Media\Reddit\Parse;
 
 use App\Jobs\ProcessRedditPost;
 use App\Support\Reddit\RedditApi;
 use Illuminate\Console\Command;
 
-class Parse extends Command
+class Top extends Command
 {
-    protected $signature = 'media:reddit:parse {subreddit} {--limit=}';
+    protected $signature = 'media:reddit:parse:top {subreddit} {--limit=} {--period=month}';
 
     public function handle(
         RedditApi $redditApi
@@ -30,7 +30,7 @@ class Parse extends Command
         while (true) {
             $listing = $redditApi->listingTop(
                 $subreddit,
-                time: 'month',
+                time: $this->option('period'),
                 after: $after
             );
 
