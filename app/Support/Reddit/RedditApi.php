@@ -3,6 +3,7 @@
 namespace App\Support\Reddit;
 
 use GuzzleHttp\ClientInterface;
+use InvalidArgumentException;
 
 class RedditApi
 {
@@ -13,22 +14,36 @@ class RedditApi
 
     public function listingTop(
         string $subreddit,
-        string $time = 'month',
+        string $type,
+        ?string $time = null,
         ?string $before = null,
         ?string $after = null,
         ?int $count = null,
         ?int $limit = null,
         ?string $show = null
     ): Listing {
+        if ($time !== null && $type !== 'top') {
+            throw new InvalidArgumentException(
+                \sprintf(
+                    'Parameter "$type" is supported only for "top" listing, "%s" given',
+                    $type
+                )
+            );
+        }
+
         $response = $this->http->request(
             'GET',
             \sprintf(
                 'https://www.reddit.com/r/%s/%s.json?%s',
                 $subreddit,
-                'top',
+                $type,
                 \http_build_query([
                     'raw_json' => '1',
-                    't' => $time,
+                    ...$type === 'top'
+                        ? [
+                            't' => $time ?? 'month',
+                        ]
+                        : [],
                     'before' => $before,
                     'after' => $after,
                     'count' => $count,
