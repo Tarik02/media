@@ -10,7 +10,8 @@
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
-        "sentry/sentry-laravel": "^3.0"
+        "sentry/sentry-laravel": "^3.0",
+        "symfony/process": "^6.1"
     },
     "require-dev": {
         "barryvdh/laravel-ide-helper": "^2.12",

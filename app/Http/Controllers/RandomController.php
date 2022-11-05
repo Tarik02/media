@@ -6,7 +6,6 @@ use App\Enums\MediaType;
 use App\Models\Media;
 use Arr;
 use Illuminate\Database\Eloquent\Builder;
-use Storage;
 
 use Illuminate\Http\{
     JsonResponse,
@@ -73,7 +72,7 @@ class RandomController extends Controller
                 'title' => $media->title,
                 'type' => $media->type->value,
                 'source' => $media->source,
-                'url' => Storage::disk($media->disk)->url($media->path),
+                'url' => $media->file->publicUrl(),
             ],
         ]);
     }

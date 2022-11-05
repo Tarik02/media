@@ -3,13 +3,16 @@
 namespace App\Support\Reddit;
 
 use App\Enums\MediaType;
-use App\Models\Media;
 use Closure;
 use Exception;
-use File;
+use File as FileHelper;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Str;
 
+use App\Models\{
+    File,
+    Media
+};
 use GuzzleHttp\{
     ClientInterface,
     RequestOptions
@@ -27,6 +30,9 @@ class PostProcessor
     public function process(array $data): void
     {
         switch (true) {
+            case isset($post['removed_by_category']):
+                break;
+
             case ($data['post_hint'] ?? null) === 'image':
                 $this->processImage($data);
                 break;
@@ -35,15 +41,36 @@ class PostProcessor
                 $this->processGallery($data);
                 break;
 
+            case null !== $downloadUrl = $data['preview']['reddit_video_preview']['fallback_url'] ?? null:
+                $media = $this->createMediaFromData($data);
+                $media->type = MediaType::VIDEO;
+                $media->file()->associate(
+                    File::fromPublicUrl($downloadUrl)
+                );
+                $media->save();
+                break;
+
+            case ($data['post_hint'] ?? null) === 'rich:video' && null !== $destUrl = $data['url_overridden_by_dest'] ?? null:
+                $media = $this->createMediaFromData($data);
+                $media->type = MediaType::VIDEO;
+                $media->file()->associate(
+                    File::fromYtdlpUrl($destUrl)
+                );
+                $media->save();
+                break;
+
             default:
                 throw new Exception('Unknown media type');
         }
     }
 
-    protected function createMediaFromData(array $data): Media
+    protected function createMediaFromData(array $data, string $uniqueKeySuffix = ''): Media
     {
-        $media = new Media;
-        $media->unique_key = $data['permalink'];
+        /** @var Media $media */
+        $media = Media::firstOrNew([
+            'unique_key' => $data['permalink'] . $uniqueKeySuffix,
+        ]);
+
         $media->title = $data['title'];
         $media->source = \sprintf(
             'https://www.reddit.com%s',
@@ -76,19 +103,14 @@ class PostProcessor
 
     protected function processImage(array $data): void
     {
-        $this->downloadTemporaryFile($data['url'], function (string $filename) use ($data) {
-            $media = $this->createMediaFromData($data);
-            if (Media::query()->where('unique_key', '=', $media->unique_key)->exists()) {
-                return;
-            }
-
-            $media->type = \preg_match('/\.gif$/i', $filename)
-                ? MediaType::GIF
-                : MediaType::PHOTO;
-
-            $this->storeMediaFile($media, $filename);
-            $media->save();
-        });
+        $media = $this->createMediaFromData($data);
+        $media->type = \preg_match('/\.gif$/i', $data['url'])
+            ? MediaType::GIF
+            : MediaType::PHOTO;
+        $media->file()->associate(
+            File::fromPublicUrl($data['url'])
+        );
+        $media->save();
     }
 
     protected function processGallery(array $data): void
@@ -100,30 +122,22 @@ class PostProcessor
                 throw new Exception("Unknown gallery item type {$metadata['e']}");
             }
 
-            $this->downloadTemporaryFile(
-                $metadata['s']['u'],
-                function (string $filename) use ($data, $i) {
-                    $media = $this->createMediaFromData($data);
-                    $media->unique_key .= '+' . $i;
-                    if (Media::query()->where('unique_key', '=', $media->unique_key)->exists()) {
-                        return;
-                    }
-
-                    $media->type = \preg_match('/\.gif$/i', $filename)
-                        ? MediaType::GIF
-                        : MediaType::PHOTO;
-
-                    $this->storeMediaFile($media, $filename);
-                    $media->save();
-                },
+            $media = $this->createMediaFromData($data);
+            $media->unique_key .= '+' . $i;
+            $media->type = \preg_match('/\.gif$/i', $metadata['s']['u'])
+                ? MediaType::GIF
+                : MediaType::PHOTO;
+            $media->file()->associate(
+                File::fromPublicUrl($data['url'])
             );
+            $media->save();
         }
     }
 
     protected function downloadTemporaryFile(string $url, Closure $callback): void
     {
         $directory = \storage_path('app/tmp') . '/reddit-' . Str::random(6);
-        File::makeDirectory($directory, recursive: true);
+        FileHelper::makeDirectory($directory, recursive: true);
 
         try {
             $filename = $directory . \DIRECTORY_SEPARATOR . \basename(\parse_url($url, \PHP_URL_PATH));
@@ -138,7 +152,7 @@ class PostProcessor
 
             $callback($filename);
         } finally {
-            File::deleteDirectory($directory);
+            FileHelper::deleteDirectory($directory);
         }
     }
 }

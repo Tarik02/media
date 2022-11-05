@@ -12,15 +12,13 @@ return new class extends Migration {
 
             $table->string('unique_key')->index()->unique();
 
+            $table->unsignedBigInteger('file_id');
+
             $table->bigInteger('rating')->default(0);
 
             $table->string('title');
 
             $table->string('type')->index();
-
-            $table->string('disk');
-
-            $table->string('path');
 
             $table->string('source');
 

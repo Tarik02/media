@@ -11,6 +11,10 @@ use GuzzleHttp\{
     Client,
     ClientInterface
 };
+use Illuminate\Database\Eloquent\{
+    Relations\Relation,
+    Model
+};
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
             ->give(
                 fn () => Storage::disk('reddit')
             );
+
+        Model::shouldBeStrict();
+        Relation::requireMorphMap();
     }
 
     public function boot(): void
