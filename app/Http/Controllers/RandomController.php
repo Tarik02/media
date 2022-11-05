@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MediaType;
+use App\Http\Resources\MediaResource;
 use App\Models\Media;
 use Arr;
 use Illuminate\Database\Eloquent\Builder;
@@ -67,13 +68,7 @@ class RandomController extends Controller
         }
 
         return new JsonResponse([
-            'data' => [
-                'id' => $media->id,
-                'title' => $media->title,
-                'type' => $media->type->value,
-                'source' => $media->source,
-                'url' => $media->file->publicUrl(),
-            ],
+            'data' => MediaResource::make($media),
         ]);
     }
 }
